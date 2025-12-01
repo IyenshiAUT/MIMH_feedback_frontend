@@ -1,106 +1,95 @@
+import { useState, useEffect } from 'react';
+import feedbackAPI from '../../services/api';
 import './FeedbackSummary.css';
 
-function FeedbackSummary({ feedback, onNewFeedback }) {
+function FeedbackSummary({ onNewFeedback }) {
+  const [stats, setStats] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    const fetchStats = async () => {
+      try {
+        setLoading(true);
+        const response = await feedbackAPI.getStats();
+        if (response.success) {
+          setStats(response.data);
+        } else {
+          throw new Error(response.error || 'Failed to fetch statistics');
+        }
+      } catch (err) {
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchStats();
+  }, []);
+
   const renderStars = (rating) => {
-    return '⭐'.repeat(parseInt(rating) || 0);
+    const roundedRating = Math.round(rating);
+    return '⭐'.repeat(roundedRating) + '☆'.repeat(5 - roundedRating);
   };
 
-  const getInnovationLabel = (value) => {
-    const labels = {
-      'low': '🟢 Low - Common approach',
-      'medium': '🟡 Medium - Some unique elements',
-      'high': '🟠 High - Very innovative',
-      'breakthrough': '🔴 Breakthrough - Game-changing'
-    };
-    return labels[value] || value;
+  const getProjectName = (projectType) => {
+    return projectType === 'tourist-utility-service-system'
+      ? 'Tourist Utility Service System'
+      : 'Stroke Hand Recovery System';
   };
 
   return (
     <div className="summary-container">
       <div className="summary-card">
         <div className="summary-header">
-          <div className="success-icon">✓</div>
-          <h2>Feedback Submitted Successfully!</h2>
-          <p>Thank you for taking the time to share your valuable feedback</p>
+          <div className="success-icon">📊</div>
+          <h2>Project Feedback Summary</h2>
+          <p>Thank you for your contribution! Here are the current stats.</p>
         </div>
 
         <div className="summary-body">
-          <div className="timestamp">
-            <span className="timestamp-icon">🕐</span>
-            <span>Submitted on {new Date().toLocaleDateString('en-US', { 
-              weekday: 'long', 
-              year: 'numeric', 
-              month: 'long', 
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit'
-            })}</span>
-          </div>
+          {loading && <div className="loading-spinner">Loading statistics...</div>}
+          {error && <div className="error-message">{error}</div>}
+          
+          {stats && (
+            <div className="stats-grid">
+              <div className="stat-item main-stat">
+                <span className="stat-value">{stats.totalFeedback}</span>
+                <span className="stat-label">Total Submissions</span>
+              </div>
+              <div className="stat-item main-stat">
+                <span className="stat-value">{stats.overallAverageRating}</span>
+                <span className="stat-label">Overall Average Rating</span>
+              </div>
 
-          {feedback.project1Rating && (
-            <div className="project-summary">
-              <div className="project-summary-header">
-                <span className="project-number">1</span>
-                <h3>Tourist Utility Service System</h3>
-              </div>
-              <div className="summary-items">
-                <div className="summary-item">
-                  <span className="item-label">Overall Rating</span>
-                  <span className="item-value stars">
-                    {renderStars(feedback.project1Rating)} 
-                    <span className="rating-number">{feedback.project1Rating}/5</span>
-                  </span>
+              {stats.projectStats.map((proj) => (
+                <div className="project-summary" key={proj.projectType}>
+                  <div className="project-summary-header">
+                    <h3>{getProjectName(proj.projectType)}</h3>
+                  </div>
+                  <div className="summary-items">
+                    <div className="summary-item">
+                      <span className="item-label">Total Feedback</span>
+                      <span className="item-value">{proj.totalFeedback}</span>
+                    </div>
+                    <div className="summary-item">
+                      <span className="item-label">Average Rating</span>
+                      <span className="item-value stars">
+                        {renderStars(proj.averageRating)}
+                        <span className="rating-number">{proj.averageRating}/5</span>
+                      </span>
+                    </div>
+                  </div>
                 </div>
-                {feedback.project1Innovation && (
-                  <div className="summary-item">
-                    <span className="item-label">Innovation Level</span>
-                    <span className="item-value">{getInnovationLabel(feedback.project1Innovation)}</span>
-                  </div>
-                )}
-                {feedback.project1Comments && (
-                  <div className="summary-item comments">
-                    <span className="item-label">Comments</span>
-                    <span className="item-value">{feedback.project1Comments}</span>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {feedback.project2Rating && (
-            <div className="project-summary">
-              <div className="project-summary-header">
-                <span className="project-number">2</span>
-                <h3>Stroke Hand Recovery System</h3>
-              </div>
-              <div className="summary-items">
-                <div className="summary-item">
-                  <span className="item-label">Overall Rating</span>
-                  <span className="item-value stars">
-                    {renderStars(feedback.project2Rating)}
-                    <span className="rating-number">{feedback.project2Rating}/5</span>
-                  </span>
-                </div>
-                {feedback.project2Innovation && (
-                  <div className="summary-item">
-                    <span className="item-label">Innovation Level</span>
-                    <span className="item-value">{getInnovationLabel(feedback.project2Innovation)}</span>
-                  </div>
-                )}
-                {feedback.project2Comments && (
-                  <div className="summary-item comments">
-                    <span className="item-label">Comments</span>
-                    <span className="item-value">{feedback.project2Comments}</span>
-                  </div>
-                )}
-              </div>
+              ))}
             </div>
           )}
         </div>
 
-        <div className="summary-actions">
-          <button className="btn-primary" onClick={onNewFeedback}>
-            <span>📝</span> Submit Another Feedback
+        <div className="summary-footer">
+          <button className="btn-reset" onClick={onNewFeedback}>
+            <span className="btn-icon">➕</span>
+            Submit Another Feedback
           </button>
         </div>
       </div>

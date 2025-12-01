@@ -119,7 +119,7 @@ function AppContent() {
           </>
         } />
         <Route path="/summary" element={
-          <FeedbackSummary feedback={formData} onNewFeedback={handleNewFeedback} />
+          <FeedbackSummary onNewFeedback={handleNewFeedback} />
         } />
       </Routes>
       <footer className="footer">
