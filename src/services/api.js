@@ -1,5 +1,5 @@
 // API Service for connecting to Cloudflare D1 Backend
-const API_BASE_URL = 'https://8f386474.feedback-backend.pages.dev';
+const API_BASE_URL = 'https://feedback-backend.pages.dev';
 
 export const feedbackAPI = {
   // Submit feedback for a project
