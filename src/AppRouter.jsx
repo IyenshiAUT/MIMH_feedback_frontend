@@ -53,8 +53,20 @@ function AppContent() {
       
       await feedbackAPI.submitFeedback(projectType, rating, innovation, comments);
       
+      // Reset form data after successful submission
+      setFormData({
+        projectSelection: '',
+        project1Rating: 0,
+        project1Innovation: '',
+        project1Comments: '',
+        project2Rating: 0,
+        project2Innovation: '',
+        project2Comments: ''
+      });
       setSubmitted(true);
-      navigate('/summary');
+      
+      // Navigate back to home page for a new submission
+      navigate('/');
       window.scrollTo({ top: 0, behavior: 'smooth' });
     } catch (error) {
       setSubmitError(error.message);
